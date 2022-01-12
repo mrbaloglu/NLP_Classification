@@ -7,3 +7,4 @@ This rating inference dataset is a sentiment classification dataset, containing 
 
 ## Code
 ### Transformer Model with Pytorch and Torchtext (rt-polarity-with-pytorch-and-torchtext-library.ipynb)
+An implementation of stacked transformer encoders using pre-trained word embeddings of GloVe, with PyTorch and Torchtext. 
