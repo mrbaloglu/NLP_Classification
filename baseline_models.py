@@ -70,5 +70,5 @@ class RNN_Baseline_Model(nn.Module):
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
 
-        # TODO figure out the embedding transformationskkkk
+        # TODO figure out the embedding transformations
         return x
