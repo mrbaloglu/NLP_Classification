@@ -41,7 +41,7 @@ def process_df_texts(data: pd.DataFrame, keys: list) -> pd.DataFrame:
     """
     for key in keys:
         tqdm_notebook.pandas(desc=f"Applying text-processing on {key}")
-        data[key] = data[key].progress_apply(lambda x: preprocess_text(x))
+        data[key] = data[key].apply(lambda x: preprocess_text(x))
 
     return data
 

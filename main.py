@@ -3,6 +3,7 @@ import pandas as pd
 
 if __name__ == '__main__':
 
+    """
     # preprocessing the data
     data = pd.read_csv("rt-polarity-full.csv")
     data.columns = ['label', 'review']
@@ -12,4 +13,12 @@ if __name__ == '__main__':
 
     # save the processed data in a csv file
     data_sqn.to_csv("rt-polarity-processed.csv")
+    """
+
+
+    data = pd.read_csv("rt-polarity-processed.csv")
+
+    
+
+
 

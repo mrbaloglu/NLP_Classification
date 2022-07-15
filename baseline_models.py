@@ -1,7 +1,19 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np
 from typing import Union
+from torchtext.vocab import GloVe
+
+
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+if device == "cpu":
+    print("Using cpu.")
+else:
+    print("Using gpu.")
 
 class RNN_Baseline_Model(nn.Module):
     def __init__(self,
@@ -65,35 +77,69 @@ class RNN_Baseline_Model(nn.Module):
         x_c, _ = self.rnn(x_c)
         x_c = self.flat(x_c)
 
-        x = torch.cat((x_c, x_num), 1)
-        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc1(x_c))
         x = F.relu(self.fc2(x))
         x = F.softmax(self.fc3(x))
 
         # TODO figure out the embedding transformations
         return x
 
+def create_emb_layer(weights_matrix, freeze = True):
+    num_embeddings, embedding_dim = weights_matrix.shape[0], weights_matrix.shape[1]
+    emb_layer = nn.Embedding.from_pretrained(torch.Tensor(weights_matrix), freeze = freeze, sparse = True)
+    #emb_layer.load_state_dict({'weight': weights_matrix})
 
+    return emb_layer, num_embeddings, embedding_dim
  
 class Transformer_Baseline_Model(nn.Module):
     def __init__(self,
                  vocab_size: int,
                  input_shape: tuple,
                  out_num_classes: int,
+                 pretrained: str = "None",
+                 freeze_emb: bool = True,
                  embed_dim: int = 5):
         """
         Transformer Encoder Class for text classification.
         :param vocab_size specifies the size of the vocabulary to be used in word embeddings.
         :param input_shape specifies the shape of the features (n_samples, max_sentence_length?). TODO check
-        :param embed_dim specifies the embedding dimension for the categorical part of the input.
+        :param out_num_classes specifies the number of classes to be predicted.
+        :param pretrained specifies the type of word-embeddings,
+        "None": Use no pretrained word embeddings.
+        "glove": Use GloVe embeddings.
+        Throws an error when an other input is given.
+        :param freeze_emb specifies whether to freeze the embeddings when it is pretrained. 
+        Will not affect the embedding if it is not pretrained.
+        :param embed_dim specifies the embedding dimension for the categorical part of the input, 
+        when it is not pretrained.
         """
         super(Transformer_Baseline_Model, self).__init__()
 
         self.embed_dim = embed_dim
-        self.embed_enc = nn.Embedding(vocab_size, embed_dim, max_norm=True)
-        self.embedding, num_embeddings, embedding_dim = create_emb_layer(weights_matrix, freeze_emb)
-        print(num_embeddings, embedding_dim)
-        trans_enc_layer = nn.TransformerEncoderLayer(d_model = embedding_dim, nhead = 5 ,batch_first=True)
+        self.embedding = None
+        if pretrained == "None":
+            self.embedding = nn.Embedding(vocab_size, embed_dim, max_norm=True)
+        elif pretrained == "glove":
+            """
+            glove = GloVe(name='6B', dim=300)
+            weights_matrix = np.zeros((vocab_size, 300))
+            words_found = 0
+            for i, word in enumerate(vocab.get_itos()):
+                try: 
+                    weights_matrix[i] = glove.get_vecs_by_tokens(word)
+                    words_found += 1
+                except KeyError:
+                    weights_matrix[i] = glove.get_vecs_by_tokens("<unk>")
+
+            self.embedding, num_embeddings, embedding_dim = create_emb_layer(weights_matrix, freeze_emb)
+            """
+            raise NotImplementedError()
+        else:
+            raise ValueError("The argument pretrained must be either 'None' or 'glove'.")
+        # self.embed_enc = nn.Embedding(vocab_size, embed_dim, max_norm=True)
+        
+        # print(num_embeddings, embedding_dim)
+        trans_enc_layer = nn.TransformerEncoderLayer(d_model = embed_dim, nhead = 5 ,batch_first=True)
         self.transformer = nn.TransformerEncoder(trans_enc_layer, num_layers=16)
         self.fc1 = nn.Linear(18600, out_num_classes) # TODO find out dimensions
         self.flatten = nn.Flatten()
