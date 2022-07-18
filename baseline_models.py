@@ -10,7 +10,7 @@ from torchtext.vocab import GloVe
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-if device == "cpu":
+if device == torch.device("cpu"):
     print("Using cpu.")
 else:
     print("Using gpu.")
