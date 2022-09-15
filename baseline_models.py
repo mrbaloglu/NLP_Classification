@@ -6,15 +6,6 @@ from typing import Union
 from torchtext.vocab import GloVe
 
 
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-
-if device == torch.device("cpu"):
-    print("Using cpu.")
-else:
-    print("Using gpu.")
-
 class RNN_Baseline_Classifier(nn.Module):
     def __init__(self,
                  vocab_size: int,
@@ -77,7 +68,7 @@ class RNN_Baseline_Classifier(nn.Module):
 
         # type check
         if type(x) != torch.Tensor:
-            x = torch.Tensor(x).to(device).int()
+            x = torch.Tensor(x).int()
         # reshape when there is only one sample
         if len(x.shape) == 1:
             x = torch.unsqueeze(x, 0)
@@ -89,7 +80,7 @@ class RNN_Baseline_Classifier(nn.Module):
         x = F.relu(self.fc1(x_c))
         x = F.relu(self.fc2(x))
         if self.out_num_classes == 2:
-            x = F.sigmoid(self.fc3(x))
+            x = torch.sigmoid(self.fc3(x))
         else:
             x = F.softmax(self.fc3(x))
 

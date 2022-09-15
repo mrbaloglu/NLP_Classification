@@ -7,6 +7,14 @@ from tqdm import tqdm
 import mlflow
 from datetime import datetime
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+if device == torch.device("cpu"):
+    print("Using cpu.")
+else:
+    print("Using gpu.")
+
 class PytorchModelTrainer:
     def __init__(self, name: str = "PytorchModelTrainer"):
         self.name = name
@@ -23,14 +31,6 @@ class PytorchModelTrainer:
                             use_mlflow: bool = False):
         """
         Train a given pytorch model using given optimizer and loss function, for given number of epochs.
-        :param model 
-        :param train_dataloader 
-        :param val_dataloader 
-        :param optimizer 
-        :param loss_fn 
-        :param n_epochs 
-        :param use_mlflow
-        
 
         Arguments:
             model -- Pytorch model to be trained.
@@ -47,6 +47,7 @@ class PytorchModelTrainer:
                         for mlflow to properly log params and metrics. 
         """
         
+        model = model.to(device)
         
         def train_one_epoch(train_dataloader):
             running_loss = 0.
@@ -58,7 +59,9 @@ class PytorchModelTrainer:
             for i, data in enumerate(tqdm(train_dataloader)):
                 # Every data instance is an input + label pair
                 inputs, labels = data
-
+                inputs = inputs.to(device)
+                labels = labels.to(device)
+                
                 # Zero your gradients for every batch!
                 optimizer.zero_grad()
 
@@ -99,6 +102,9 @@ class PytorchModelTrainer:
             running_vloss = 0.0
             for i, vdata in enumerate(val_dataloader):
                 vinputs, vlabels = vdata
+                vinputs = vinputs.to(device)
+                vlabels = vlabels.to(device)
+
                 voutputs = model(vinputs)
                 vloss = loss_fn(voutputs, vlabels)
                 running_vloss += vloss
