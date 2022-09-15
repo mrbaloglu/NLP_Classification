@@ -15,10 +15,10 @@ if device == torch.device("cpu"):
 else:
     print("Using gpu.")
 
-class RNN_Baseline_Model(nn.Module):
+class RNN_Baseline_Classifier(nn.Module):
     def __init__(self,
                  vocab_size: int,
-                 input_shape: tuple,
+                 input_dim: int,
                  out_num_classes: int,
                  embed_dim: int = 5,
                  rnn_type: str = "gru",
@@ -28,18 +28,24 @@ class RNN_Baseline_Model(nn.Module):
                  units: int = 50):
         """
         RNN Class for text classification.
-        :param vocab_size specifies the size of the vocabulary to be used in word embeddings.
-        :param input_shape specifies the shape of the features (n_samples, max_sentence_length?). TODO check
-        :param embed_dim specifies the embedding dimension for the categorical part of the input.
-        :param rnn_type specifies the type of the recurrent layer for word embeddings.
-        MUST be "gru" or "lstm".
-        :param rnn_hidden_size specifies the number of stacked recurrent layers.
-        :param rnn_hidden_out specifies number of features in the hidden state h of recurrent layer.
-        :param rnn_bidirectional specifies whether the recurrent layers be bidirectional.
-        :param units specifies the number of neurons in the hidden layers.
+        Arguments:
+            vocab_size -- specifies the size of the vocabulary to be used in word embeddings.
+            input_dim -- specifies the dimension of the features (n_samples, max_sentence_length (input_dim)).
+            out_num_classes -- specifies the number of classes for the output. 
+            (for binary classification this argument must be 2)
+
+        Keyword Arguments:
+            embed_dim -- embed_dim specifies the embedding dimension for the categorical part of the input. (default: {5})
+            rnn_type -- specifies the type of the recurrent layer for word embeddings. (default: {"gru"})
+            rnn_hidden_size -- specifies the number of stacked recurrent layers. (default: {2})
+            rnn_hidden_out -- specifies number of features in the hidden state h of recurrent layer. (default: {2})
+            rnn_bidirectional -- specifies whether the recurrent layers be bidirectional. (default: {True})
+            units -- specifies the number of neurons in the hidden layers. (default: {50})
+
         """
-        super(RNN_Baseline_Model, self).__init__()
+        super(RNN_Baseline_Classifier, self).__init__()
         self.embed_dim = embed_dim
+        self.out_num_classes = out_num_classes
 
         self.embed_enc = nn.Embedding(vocab_size, embed_dim, max_norm=True)
         self.rnn = nn.GRU(embed_dim, rnn_hidden_out, rnn_hidden_size,
@@ -50,14 +56,17 @@ class RNN_Baseline_Model(nn.Module):
         elif rnn_type != "gru":
             raise ValueError("The argument rnn_type must be 'gru' or 'lstm'!")
 
-        rnn_out_dim = rnn_hidden_out * input_shape[1]
+        rnn_out_dim = rnn_hidden_out * input_dim
         if rnn_bidirectional:
             rnn_out_dim *= 2
 
         self.flat = nn.Flatten()
         self.fc1 = nn.Linear(rnn_out_dim, units)
         self.fc2 = nn.Linear(units, units)
-        self.fc3 = nn.Linear(units, out_num_classes)
+        if self.out_num_classes == 2:
+            self.fc3 = nn.Linear(units, 1)
+        else:
+            self.fc3 = nn.Linear(units, out_num_classes)
 
     def forward(self, x: Union[np.ndarray, torch.Tensor]) -> torch.Tensor:
         """
@@ -73,15 +82,17 @@ class RNN_Baseline_Model(nn.Module):
         if len(x.shape) == 1:
             x = torch.unsqueeze(x, 0)
         
-        x_c = self.embed_enc(x)
+        x_c = self.embed_enc(x.int())
         x_c, _ = self.rnn(x_c)
         x_c = self.flat(x_c)
 
         x = F.relu(self.fc1(x_c))
         x = F.relu(self.fc2(x))
-        x = F.softmax(self.fc3(x))
+        if self.out_num_classes == 2:
+            x = F.sigmoid(self.fc3(x))
+        else:
+            x = F.softmax(self.fc3(x))
 
-        # TODO figure out the embedding transformations
         return x
 
 def create_emb_layer(weights_matrix, freeze = True):
