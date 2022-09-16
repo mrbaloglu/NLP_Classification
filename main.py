@@ -8,9 +8,6 @@ from pytorch_trainer import PytorchModelTrainer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 import torch
-import unboxapi
-from unboxapi.models import ModelType
-from unboxapi.tasks import TaskType
 
 if __name__ == '__main__':
 
@@ -73,45 +70,10 @@ if __name__ == '__main__':
 
     
 
-    client = unboxapi.UnboxClient('qOYOArcMtgY3JN_PhdzH4eMVTQayP2L8')
-
-    # creating the project
     
-
-    project = client.create_or_load_project(name="sentiment classification",
-                                            task_type=TaskType.TextClassification,
-                                            description="Evaluation of ML approaches to classify movie reviews")
-
-    # uploading the dataset to the project
-    dataset = project.add_dataset()
-    dataset = project.add_dataset(
-        df=val_set,
-        class_names=["bad", "good"],
-        label_column_name="label",
-        text_column_name="text",
-        commit_message="First commit!"  
-    )
-
-    # defining the model's predict probability function
-    def predict_proba(model, text_list):    
-        # Getting the model's predictions
-        preds = model(text_list)
-        
-        return preds
     
-    # uploading the model to the project
     
-
-    model = project.add_model(
-        function=predict_proba, 
-        model=sklearn_model,
-        model_type=ModelType.sklearn,
-        class_names=["Not urgent", "Urgent"],
-        name='Gradient boosting classifier',
-        commit_message='second commit!',
-        requirements_txt_file='requirements.txt'
-    )
-        
+    
     
 
     
