@@ -42,6 +42,7 @@ class RNN_Baseline_Classifier(nn.Module):
 
         """
         super(RNN_Baseline_Classifier, self).__init__()
+
         self.embed_dim = embed_dim
         self.out_num_classes = out_num_classes
 
@@ -80,6 +81,7 @@ class RNN_Baseline_Classifier(nn.Module):
         # type check
         if type(x) != torch.Tensor:
             x = torch.Tensor(x)
+
         # reshape when there is only one sample
         if len(x.shape) == 1:
             x = torch.unsqueeze(x, 0)
@@ -128,7 +130,6 @@ class Transformer_Baseline_Classifier(nn.Module):
         """
         
         super(Transformer_Baseline_Classifier, self).__init__()
-
         self.embed_dim = embed_dim
         self.out_dim = out_num_classes
         self.trns_out_dim = embed_dim * input_dim
@@ -179,6 +180,7 @@ class Transformer_Baseline_Classifier(nn.Module):
         # type check
         if type(x) != torch.Tensor:
             x = torch.Tensor(x)
+        
         # reshape when there is only one sample
         if len(x.shape) == 1:
             x = torch.unsqueeze(x, 0)
@@ -221,7 +223,7 @@ class BERT_Baseline_Classifier(nn.Module):
         self.linear = nn.Linear(768, 1)
 
     def forward(self, input_id, mask):
-
+        
         _, pooled_output = self.bert(input_ids=input_id, attention_mask=mask,return_dict=False)
         dropout_output = self.dropout(pooled_output)
         linear_output = self.linear(dropout_output)
