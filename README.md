@@ -2,8 +2,11 @@
 Some implementations for NLP classification tasks.
 
 ## Datasets
-### RT Polarity Data (rt-polarity-no-header.csv)
+### RT Polarity Data
 This rating inference dataset is a sentiment classification dataset, containing 5,331 positive and 5,331 negative processed sentences from Rotten Tomatoes movie reviews. On average, these reviews consist of 21 words. Collected from https://www.cs.cornell.edu/people/pabo/movie-review-data/ and converted to a pandas dataframe.
+
+### Yahoo Answers Data
+The Yahoo! Answers topic classification dataset is constructed using 10 largest main categories. Each class contains 140,000 training samples and 6,000 testing samples. Therefore, the total number of training samples is 1,400,000 and testing samples 60,000 in this dataset. From all the answers and other meta-information, we only used the best answer content and the main category information. Collected from https://www.kaggle.com/datasets/soumikrakshit/yahoo-answers-dataset. 
 
 ## Code
 ### PyTorch Models (baseline_models.py)
