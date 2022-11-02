@@ -16,7 +16,7 @@ import platform
 if platform.system() == "Windows":
     import winsound
 else:
-    pass # TODO
+    import subprocess
 
 #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -126,7 +126,7 @@ class PytorchModelTrainer:
             if platform.system() == "Windows":
                 winsound.PlaySound("./beep-sound-sound-effect.wav", winsound.SND_FILENAME)
             else:
-                pass # TODO
+                subprocess.call(["afplay", "/Users/emrebaloglu/Documents/NLP/NLP_Classification/beep-sound-sound-effect.wav"])
             return last_loss
 
 
@@ -184,7 +184,7 @@ class PytorchModelTrainer:
             print(type(avg_vloss))
             
             if use_mlflow:
-                mlflow.log_metric("validation_loss", float(avg_vloss.detach().numpy()))
+                mlflow.log_metric("validation_loss", avg_vloss)
 
 
             # Track best performance, and save the model's state
@@ -197,7 +197,7 @@ class PytorchModelTrainer:
         if platform.system() == "Windows":
             winsound.PlaySound("./done-sound-effect.wav", winsound.SND_FILENAME)
         else:
-            pass # TODO
+            subprocess.call(["afplay", "/Users/emrebaloglu/Documents/NLP/NLP_Classification/done-sound-effect.wav"])
 
     def test_pytorch_model_w_loader(self, model: nn.Module,
                             test_dataloader: DataLoader,
