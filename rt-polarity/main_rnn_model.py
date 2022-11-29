@@ -82,12 +82,12 @@ if __name__ == '__main__':
     mlflow.start_run(run_name="rnn_run_" + now)
 
     rnn_params = {
-    "embed_dim": 10,
+    "embed_dim": 50,
     "rnn_type": "gru",
-    "rnn_hidden_size": 4,
-    "rnn_hidden_out": 2,
+    "rnn_hidden_size": 15,
+    "rnn_hidden_out": 5,
     "rnn_bidirectional": True,
-    "units": 32
+    "units": 64
     }
 
     for name, val in rnn_params.items():
@@ -101,13 +101,13 @@ if __name__ == '__main__':
     6 - 300
     8 - 400
     """
-    learning_rate = 0.001
+    learning_rate = 0.0001
     mlflow.log_param("learning rate", learning_rate)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     loss_fn = torch.nn.BCELoss()
     trainer = PytorchModelTrainer()
 
-    N_EPOCHS = 1
+    N_EPOCHS = 10
     mlflow.log_param("n epochs", N_EPOCHS)
 
     print(trainer.test_pytorch_model_np(model, val_dataset.get_x(), val_dataset.get_y(), "classification", "binary"))    

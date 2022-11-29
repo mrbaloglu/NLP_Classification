@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import pandas as pd
-from typing import Union, Tuple
+from typing import Union, Tuple, Dict
 import pickle
 import transformers
 from tqdm import tqdm
@@ -161,6 +161,25 @@ class PandasTextDataset(Dataset):
         train_dataset = PandasTextDataset(train_df, self.feature_cols, self.target_cols, tokenize_data=False)
         test_dataset = PandasTextDataset(test_df, self.feature_cols, self.target_cols, tokenize_data=False)
         return train_dataset, test_dataset
+
+
+class BertDataset(Dataset):
+    def __init__(self, data: pd.DataFrame, attention_mask_col: str, input_id_col: str, label_col: str):
+        self.data = data[[attention_mask_col, input_id_col, label_col]].copy()
+        self.attention_mask_col = attention_mask_col
+        self.input_id_col = input_id_col
+        self.label_col = label_col
+    
+    def __getitem__(self, idx) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+       
+       attention_mask = torch.from_numpy(self.data[self.attention_mask_col][idx]).int()
+       input_ids = torch.from_numpy(self.data[self.input_id_col][idx]).int()
+       label = torch.Tensor([self.data[self.label_col][idx]]).float()
+       data = {"attention_mask": attention_mask, "input_ids": input_ids}
+       return data, label
+    
+    def __len__(self) -> int:
+        return len(self.data)
 
 if __name__ == "__main__":
     

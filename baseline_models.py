@@ -98,6 +98,12 @@ class RNN_Baseline_Classifier(nn.Module):
             x = torch.softmax(self.fc3(x))
 
         return x
+    
+    def get_output_num_classes(self):
+        if self.out_num_classes == 1:
+            return 2
+        else:
+            return self.out_num_classes
 
 
 class Transformer_Baseline_Classifier(nn.Module):
@@ -210,23 +216,63 @@ class Transformer_Baseline_Classifier(nn.Module):
             cnt += 1
             if(cnt == index):
               break
+    
+    def get_output_dim(self):
+        return self.out_dim
+
 
 
 class BERT_Baseline_Classifier(nn.Module):
 
-    def __init__(self, dropout: float = 0.5):
+    def __init__(self, output_dim: int, dropout: float = 0.5):
 
         super(BERT_Baseline_Classifier, self).__init__()
 
+        self.output_dim = output_dim
+        
         self.bert = transformers.BertModel.from_pretrained('bert-base-cased')
         self.dropout = nn.Dropout(dropout)
-        self.linear = nn.Linear(768, 1)
+        self.linear = nn.Linear(768, self.output_dim)
 
     def forward(self, input_id, mask):
         
         _, pooled_output = self.bert(input_ids=input_id, attention_mask=mask,return_dict=False)
         dropout_output = self.dropout(pooled_output)
         linear_output = self.linear(dropout_output)
-        final_layer = torch.sigmoid(linear_output)
+        if self.output_dim == 1:
+            final_layer = torch.sigmoid(linear_output)
+        else: 
+            final_layer = torch.softmax(linear_output, dim=1)
 
         return final_layer
+    
+    def get_output_dim(self):
+            return self.output_dim
+
+class DistilBert_Classifier(nn.Module):
+
+    def __init__(self, output_dim: int, dropout: float = 0.5):
+
+        super().__init__()
+
+        self.output_dim = output_dim
+        
+        self.bert = transformers.BertModel.from_pretrained('distilbert-base-uncased')
+        self.dropout = nn.Dropout(dropout)
+        self.linear = nn.Linear(768, self.output_dim)
+
+    def forward(self, input_id, mask):
+        
+        _, pooled_output = self.bert(input_ids=input_id, attention_mask=mask,return_dict=False)
+        dropout_output = self.dropout(pooled_output)
+        linear_output = self.linear(dropout_output)
+        if self.output_dim == 1:
+            final_layer = torch.sigmoid(linear_output)
+        else: 
+            final_layer = torch.softmax(linear_output, dim=1)
+
+        return final_layer
+    
+    def get_output_dim(self):
+            return self.output_dim
+
